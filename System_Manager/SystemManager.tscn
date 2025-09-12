@@ -1,0 +1,86 @@
+[gd_scene load_steps=4 format=3 uid="uid://cje3sxg6igvkp"]
+
+[ext_resource type="Script" uid="uid://bwrcrwoo3x3py" path="res://System_Manager/Scripts/system_manager.gd" id="1_d1vr1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i640t"]
+bg_color = Color(0.172549, 0.172549, 0.172549, 0.498039)
+
+[sub_resource type="Theme" id="Theme_d1vr1"]
+Panel/styles/panel = SubResource("StyleBoxFlat_i640t")
+
+[node name="Root" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_d1vr1")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 192.0
+offset_bottom = 256.0
+mouse_filter = 2
+theme = SubResource("Theme_d1vr1")
+
+[node name="Monitor" type="Node2D" parent="Panel"]
+
+[node name="FPS" type="Label" parent="Panel/Monitor"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 48.0
+offset_bottom = 31.0
+text = "FPS:"
+
+[node name="FPSLABEL" type="Label" parent="Panel/Monitor"]
+offset_left = 48.0
+offset_top = 8.0
+offset_right = 88.0
+offset_bottom = 31.0
+text = "00"
+
+[node name="Ray" type="Label" parent="Panel/Monitor"]
+offset_left = 8.0
+offset_top = 32.0
+offset_right = 48.0
+offset_bottom = 55.0
+text = "Ray:"
+
+[node name="RayLabel" type="Label" parent="Panel/Monitor"]
+offset_left = 48.0
+offset_top = 32.0
+offset_right = 88.0
+offset_bottom = 55.0
+text = "Null"
+
+[node name="HeadCollsion" type="Label" parent="Panel/Monitor"]
+offset_left = 8.0
+offset_top = 56.0
+offset_right = 53.0
+offset_bottom = 79.0
+text = "Head:"
+
+[node name="HeadCollisionLabel" type="Label" parent="Panel/Monitor"]
+offset_left = 56.0
+offset_top = 56.0
+offset_right = 96.0
+offset_bottom = 79.0
+text = "False"
+
+[node name="Speed" type="Label" parent="Panel/Monitor"]
+offset_left = 8.0
+offset_top = 80.0
+offset_right = 53.0
+offset_bottom = 103.0
+text = "Speed:"
+
+[node name="SpeedLabel" type="Label" parent="Panel/Monitor"]
+offset_left = 64.0
+offset_top = 80.0
+offset_right = 104.0
+offset_bottom = 103.0
+text = "0.0"

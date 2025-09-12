@@ -1,9 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://dcajv1iwcxk3p"]
+[gd_scene load_steps=12 format=3 uid="uid://dcajv1iwcxk3p"]
 
 [ext_resource type="Script" uid="uid://cusk5j7xqs41u" path="res://Player/Scripts/player_template.gd" id="1_0utw5"]
 [ext_resource type="Script" uid="uid://38225hcfbnab" path="res://Player/Scripts/interactable_ui.gd" id="2_j0nvo"]
 [ext_resource type="Script" uid="uid://dh5edkb0fc4wg" path="res://Player/Scripts/CameraTranslation.gd" id="2_pvbpw"]
 [ext_resource type="Texture2D" uid="uid://7lvwps43h2ju" path="res://Prototyping/Textures/t_flashlightpattern.png" id="3_fkw0l"]
+[ext_resource type="AudioStream" uid="uid://2xijjsgw5ugg" path="res://Player/Audio/Walking_Woodland.mp3" id="5_65lba"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_8pvim"]
 height = 1.75
@@ -72,6 +73,22 @@ tracks/4/keys = {
 "values": [Vector3(0, 1, 0), Vector3(0, 0.658, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_65lba"]
+resource_name = "Landing"
+length = 0.8
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CamHolder:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8),
+"transitions": PackedFloat32Array(0.5, 0.5, 0.5),
+"update": 0,
+"values": [Vector3(0, 1.6, 0), Vector3(0, 1.46, 0), Vector3(0, 1.6, 0)]
+}
+
 [sub_resource type="Animation" id="Animation_fkw0l"]
 length = 0.001
 tracks/0/type = "value"
@@ -138,20 +155,23 @@ tracks/4/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_65lba"]
 _data = {
 &"Crouch": SubResource("Animation_pvbpw"),
+&"Landing": SubResource("Animation_65lba"),
 &"RESET": SubResource("Animation_fkw0l")
 }
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_j0nvo"]
 radius = 0.4
 
-[node name="Player_Template" type="CharacterBody3D" node_paths=PackedStringArray("camholder", "aimdot", "headray", "headshape3d", "animation_player", "flashlight")]
+[node name="Player_Template" type="CharacterBody3D" node_paths=PackedStringArray("camholder", "maincamera", "aimdot", "headray", "headshape3d", "animation_player", "flashlight", "flashlight_second", "audio_3d")]
 script = ExtResource("1_0utw5")
-walk_speed = 3.0
+walk_speed = 3.5
 run_speed = 5.0
 jump_velocity = 0.7
 fall_speed = 1.8
 camholder = NodePath("CamHolder")
+maincamera = NodePath("CamHolder/Camera3D")
 aimdot = NodePath("Interactable_Ui/AimDot")
+enabled = true
 circle_color = Color(0.662745, 0.662745, 0.662745, 0.572549)
 outline_raduis = 6.0
 outline_color = Color(0.972549, 0.972549, 1, 0.737255)
@@ -162,44 +182,15 @@ headshape3d = NodePath("HeadShape")
 animation_player = NodePath("AnimationPlayer")
 animation_speed = 1.4
 flashlight = NodePath("CamHolder/FlashLight")
-
-[node name="PlayerShape" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
-shape = SubResource("CapsuleShape3D_8pvim")
-
-[node name="CamHolder" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
-
-[node name="Camera3D" type="Camera3D" parent="CamHolder" node_paths=PackedStringArray("player_body")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.98, 0)
-top_level = true
-current = true
-script = ExtResource("2_pvbpw")
-player_body = NodePath("../..")
-moition = 30.0
-headbob_freq = 2.5
-HEADBOB_AMOUNT = 0.006
-
-[node name="HeadRay" type="RayCast3D" parent="CamHolder"]
-target_position = Vector3(0, 0, -2)
-
-[node name="FlashLight" type="SpotLight3D" parent="CamHolder"]
-visible = false
-light_energy = 3.0
-light_projector = ExtResource("3_fkw0l")
-light_specular = 2.0
-shadow_enabled = true
-spot_range = 8.30495
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_65lba")
-}
-
-[node name="HeadShape" type="ShapeCast3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.658, 0)
-shape = SubResource("SphereShape3D_j0nvo")
-target_position = Vector3(0, 1.155, 0)
+flashlight_second = NodePath("CamHolder/FlashLightSec")
+headbob_freq = 2.6
+headbob_amount = 0.009
+anim_speed = 3.2
+audio_3d = NodePath("Audio3D")
+audio_pitch_walk_scale = 0.73
+audio_pitch_run_scale = 1.1
+audio_pitch_crouch_scale = 0.6
+audio_scale = -22.0
 
 [node name="Interactable_Ui" type="Control" parent="."]
 layout_mode = 3
@@ -221,3 +212,49 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_j0nvo")
+
+[node name="PlayerShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, 0)
+shape = SubResource("CapsuleShape3D_8pvim")
+
+[node name="CamHolder" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CamHolder" node_paths=PackedStringArray("player_body")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.98, 0)
+top_level = true
+current = true
+script = ExtResource("2_pvbpw")
+player_body = NodePath("../..")
+
+[node name="HeadRay" type="RayCast3D" parent="CamHolder"]
+target_position = Vector3(0, 0, -2)
+
+[node name="FlashLight" type="SpotLight3D" parent="CamHolder"]
+visible = false
+light_energy = 2.0
+light_projector = ExtResource("3_fkw0l")
+light_specular = 1.5
+shadow_enabled = true
+spot_range = 10.0
+
+[node name="FlashLightSec" type="SpotLight3D" parent="CamHolder"]
+visible = false
+light_energy = 0.8
+light_specular = 0.8
+shadow_enabled = true
+spot_range = 20.0
+spot_angle = 27.9103
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_65lba")
+}
+
+[node name="HeadShape" type="ShapeCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.658, 0)
+shape = SubResource("SphereShape3D_j0nvo")
+target_position = Vector3(0, 1.155, 0)
+
+[node name="Audio3D" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_65lba")

@@ -1,5 +1,8 @@
 extends CharacterBody3D
 
+#Character Mesh Settings
+@export_group("Mesh Settings")
+@export var character_mesh: MeshInstance3D
 #Character Movement Settings
 @export_group("Movement Settings")
 @export var walk_speed: float = 4.0
@@ -16,11 +19,14 @@ extends CharacterBody3D
 @export var mouse_senstivity: float = 500.0
 @export_range(-100.0, -10.0) var xclamp_min: float = -90
 @export_range(10.0, 100.0) var xclamp_max: float = 90
+@export var camera_moition: float = 30.0
 @export var mouse_captured: bool = true
 @export var camholder: Node3D
+@export var maincamera: Camera3D
 #AimDot Settings
 @export_group("AimDot Settings")
 @export var aimdot: AimDot
+@export var enabled: bool = false
 @export var circle_raduis: float = 5.0
 @export var circle_color: Color = Color.DARK_GRAY
 @export var outline_raduis: float = 5.5
@@ -46,9 +52,28 @@ var _is_colliding: bool = false
 #Flashlight Settings
 @export_group("FlashLigh Settings")
 @export var flashlight:SpotLight3D
+@export var flashlight_second:SpotLight3D
 @export var fashlight_power: float = 1.0
+@export var flashlight_spot_range = 8.0
+@export var flashlight_light_energy = 3.0
+@export var flashlight_light_specular = 2.0
 @export var flashlight_stat: bool = false
 @export var flashlight_battery: float = 100
+@export_group("Headbob Settings")
+@export var headbob_freq:float = 2.4
+@export var headbob_amount: float = 0.06
+#Landing Settings
+@export_group("Landing Settings")
+@export var is_on_air:bool = false  
+@export var anim_speed: float = 1.0
+#Audio Settings 
+@export_group("Audio Settings")
+@export var audio_3d: AudioStreamPlayer
+@export var audio_pitch_walk_scale: float = 1.0
+@export var audio_pitch_run_scale: float = 1.0
+@export var audio_pitch_crouch_scale: float = 1.0
+@export var audio_scale: float = -11.0
+@export var is_playing: bool = false
 #incode variables
 var speed: float
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity") 
@@ -62,6 +87,11 @@ var is_run: bool
 var joystickmotion:Vector2
 
 func _ready() -> void:
+	#HeadBob and Motion Pre-Settings
+	maincamera.headbob_freq = headbob_freq
+	maincamera.headbob_amount = headbob_amount
+	maincamera.motion = camera_moition
+	#Aimdot Pre-Settings
 	if aimdot:
 		aimdot.circle_raduis = circle_raduis
 		aimdot.circle_color = circle_color
@@ -70,9 +100,22 @@ func _ready() -> void:
 		aimdot.filled = filled
 		aimdot.circle_width = circle_width
 		aimdot.antialiass = antialiass
+		if enabled == false:
+			aimdot.visible = false
+		else:
+			aimdot.visible = true
+
+	#Flashlight Pre-Settings
 	flashlight.visible = false
 	flashlight_stat = false
+	flashlight.spot_range = flashlight_spot_range
+	flashlight.light_energy = flashlight_light_energy
+	flashlight.light_specular = flashlight_light_specular
+	flashlight_second.visible = flashlight.visible
+	#Speed Pre-Settings
 	speed = walk_speed
+
+	#Mouse Capture State
 	if mouse_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -89,8 +132,11 @@ func _ready() -> void:
 	#headshape3d properties
 	headshape3d.exclude_parent = excludeparent
 
+	#Audio Pre-Settings
+	audio_3d.volume_db = audio_scale
 
 func _unhandled_input(event: InputEvent) -> void:
+	#Input Pre-Settings
 	if event is InputEventMouseMotion:
 		mouse_motion = -event.relative / mouse_senstivity
 	if event is InputEventJoypadMotion:
@@ -116,19 +162,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		if flashlight_stat == false:
 			flashlight_stat = true
 			flashlight.visible = true
+			flashlight_second.visible = flashlight.visible
 		else:
 			flashlight_stat = false
 			flashlight.visible = false
+			flashlight_second.visible = flashlight.visible
+
 
 func _movement_speed() -> void:
 	if is_on_floor():
 		if is_run and !crouch:
 			speed = run_speed
+			audio_3d.pitch_scale = audio_pitch_run_scale
 		elif !is_run and !crouch:
 			speed = walk_speed
+			audio_3d.pitch_scale = audio_pitch_walk_scale
 		else:
 			speed = crouch_speed
-
+			audio_3d.pitch_scale = audio_pitch_crouch_scale
 
 func _character_control() -> void:
 	rotate_y(mouse_motion.x)
@@ -137,14 +188,32 @@ func _character_control() -> void:
 	mouse_motion = Vector2.ZERO
 
 
-func double_jump() -> void:
-	pass
+func _audio_system() -> void:
+	if velocity.length() != 0 and is_on_floor():
+		if audio_3d.playing == false:
+			audio_3d.playing = true
+	else:
+		audio_3d.playing = false
 
 
+func jump_anim() -> void:
+	if velocity.y < 0 and not is_on_floor():
+		is_on_air = true
+	if is_on_air == true and is_on_floor():
+		animation_player.play("Landing", -1, anim_speed, false)
+		is_on_air = false
+
+	 
 func _physics_process(delta: float) -> void:
+	_audio_system()
+	#Jump Animation Control 
+	jump_anim()
+	#Movement Speed Control 
 	_movement_speed()
+	#Collision And Feedback
 	_is_colliding = headshape3d.is_colliding()
 	headray_colliding = headray.is_colliding()
+	#Character Controller (Rotation And Camera Control)
 	_character_control()
 	# Add the gravity.
 	if not is_on_floor():
